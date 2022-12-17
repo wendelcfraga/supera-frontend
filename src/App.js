@@ -7,8 +7,7 @@ function App() {
   const [endDate, setEndDate] = useState("");
   const [operator, setOperator] = useState("");
   const [transactions, setTransactions] = useState([]);
-
-  const [data, setData] = useState([]);
+  const [setData] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
