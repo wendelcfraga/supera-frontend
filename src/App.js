@@ -12,7 +12,7 @@ function App() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch('http://127.0.0.1:8080/transferencias/');
+      const response = await fetch('http://localhost:8080/transferencias/');
       const data = await response.json();
       setTransactions(data);
     }
