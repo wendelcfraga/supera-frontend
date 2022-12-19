@@ -1,22 +1,59 @@
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import "./styles.css";
-
 
 function App() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [operator, setOperator] = useState("");
   const [transactions, setTransactions] = useState([]);
-  const [setData] = useState([]);
+  const [saldoPeriodo, setSaldoPeriodo] = useState(0);
+  const [saldoTotal, setSaldoTotal] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch('http://localhost:8080/transferencias/');
+      const response = await fetch("http://localhost:8080/transferencias/");
       const data = await response.json();
       setTransactions(data);
-    }
+
+    };
     fetchData();
   }, []);
+
+  const searchTransactions = async (startDate, endDate, operator) => {
+    const newStartDate = encodeURIComponent(startDate + " 00:00:00+03");
+    const newEndDate = encodeURIComponent(endDate + " 00:00:00+03");
+    const newOperator = operator;//encodeURIComponent(operator);
+    let response;
+    console.log(operator);
+    console.log(startDate, "  ", endDate);
+
+    if ((startDate.length === 0 || endDate.length === 0) && operator.length === 0)
+    {
+      response = await fetch("http://localhost:8080/transferencias/");
+    }
+    else if ((startDate.length === 0 || endDate.length === 0) && operator.length >= 1)
+    {
+      response = await fetch(
+        `http://localhost:8080/transferencias/operador/${newOperator}`
+      );
+    }
+    else 
+    {
+      response = await fetch(
+        `http://localhost:8080/transferencias/periodo?dataIni=${newStartDate}&dataFim=${newEndDate}`
+      );
+    };
+    
+    const data = await response.json();
+    setTransactions(data);
+
+    let saldo = 0;
+      data.forEach(transaction => {
+        saldo += transaction.valor;
+      });
+      setSaldoPeriodo(saldo);
+      setSaldoTotal(saldo);
+  };
 
   return (
     <div className="container">
@@ -48,12 +85,23 @@ function App() {
         />
       </div>
       <div className="form-pesquisar">
-        <button onClick={() => setData([])}>Pesquisar</button>
+        <button onClick={() => searchTransactions(startDate, endDate, operator)}>
+          Pesquisar
+        </button>
       </div>
       <br />
-
       <table>
         <thead>
+          <tr className="saldo">
+            <th className="saldo-total">
+              <label><b>Saldo total:</b></label>
+              <span>{"R$ " + saldoTotal.toFixed(2)}</span>
+            </th>
+            <th className="saldo-periodo">
+              <label><b>Saldo no período:</b></label>
+              <span>{"R$ " + saldoPeriodo.toFixed(2)}</span>
+            </th>
+          </tr>
           <tr>
             <th>Data</th>
             <th>Valentia</th>
@@ -64,8 +112,8 @@ function App() {
         <tbody>
           {transactions.map((item) => (
             <tr key={item.id}>
-              <td>{item.dataTransferencia}</td>
-              <td>{item.valor}</td>
+              <td>{item.dataTransferencia.substring(0, 10)}</td>
+              <td>{"R$ " + item.valor}</td>
               <td>{item.tipo}</td>
               <td>{item.nomeOperadorTransacao}</td>
             </tr>
